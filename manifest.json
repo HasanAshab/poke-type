@@ -1,0 +1,21 @@
+{
+    "name": "Pokémon Damage Calculator",
+    "short_name": "PokeCalc",
+    "description": "Calculate Pokémon damage based on type matchups.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3b4cca",
+    "icons": [
+        {
+            "src": "/robot-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/robot-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

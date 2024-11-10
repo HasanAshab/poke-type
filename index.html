@@ -1,1 +1,39 @@
-<!DOCTYPE html><html lang="en"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Poké List</title> <link rel="stylesheet" href="styles.css"></head><body> <h1>Poké List</h1> <!-- Display poke list --> <div id="poke-list"> <h3>List of Pokes</h3> <ul id="list"> <!-- Pokes will be displayed here --> </ul> <button onclick="getPokes()">Refresh List</button> </div> <!-- Add new poke form --> <div id="poke-add"> <h3>Add New Poke</h3> <input type="text" id="pokeName" placeholder="Enter pokemon name" /> <button onclick="addPoke()">Add to wishlist</button> </div> <script> function pokeApi(url, ...args) { return fetch(`https://filestore.pythonanywhere.com/${url}`, ...args)}function getPokes() { pokeApi('/pokes/') .then(response => response.json()) .then(data => { const pokeList = document.getElementById('list'); pokeList.innerHTML = ''; data.data.forEach(poke => { const listItem = document.createElement('li'); listItem.textContent = poke; const deleteButton = document.createElement('button'); deleteButton.textContent = 'Remove'; deleteButton.style.marginLeft = '10px'; deleteButton.onclick = function() { deletePoke(poke); }; listItem.appendChild(deleteButton); pokeList.appendChild(listItem); }); }) .catch(error => { console.error('Error fetching pokes:', error); });}function addPoke() { const pokeName = document.getElementById('pokeName').value; if (pokeName) { pokeApi(`/pokes/add/?name=${encodeURIComponent(pokeName)}`, { method: 'GET' }) .then(response => { if (response.status === 201) { document.getElementById('pokeName').value = '';getPokes();} else { alert('Failed to add poke. Please try again.'); } }) .catch(error => { console.error('Error adding poke:', error); }); } else { alert('Please enter a poke name.'); }}function deletePoke(pokeName) { pokeApi(`/pokes/delete/?name=${encodeURIComponent(pokeName)}`, { method: 'DELETE' }) .then(response => { if (response.status === 200) { getPokes();} else { alert('Failed to delete poke.'); } }) .catch(error => { console.error('Error deleting poke:', error); });}document.addEventListener('DOMContentLoaded', getPokes); </script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Damage Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3b4cca">
+</head>
+<body>
+    <h1>Pokémon Damage Calculator</h1>
+    <form id="damage-form">
+        <label for="attack-type">Attack Type:</label>
+        <select id="attack-type"></select>
+
+        <div id="target-types-container">
+            <label>Target Types:</label>
+            <button type="button" onclick="addTargetType()">+ Add Target Type</button>
+        </div>
+
+        <label for="base-damage">Base Damage:</label>
+        <input type="number" id="base-damage" value="20">
+
+        <button type="button" onclick="calculateDamage()">Calculate Damage</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(err => {
+                console.error("Service Worker registration failed:", err);
+            });
+        }
+    </script>
+</body>
+</html>

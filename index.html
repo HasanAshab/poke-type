@@ -17,6 +17,7 @@
         <div id="target-types-container">
             <label>Target Types:</label>
             <button type="button" onclick="addTargetType()">+ Add Target Type</button>
+            <div id="target-type-selects"></div> <!-- Container for target type selectors -->
         </div>
 
         <label for="base-damage">Base Damage:</label>
@@ -28,12 +29,29 @@
     <div id="result"></div>
 
     <script src="script.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js').catch(err => {
-                console.error("Service Worker registration failed:", err);
-            });
-        }
-    </script>
 </body>
 </html>
+
+<br><br><br><br><br><br>
+<br><br><br><br><br><br>
+<br><br><br><br><br><br>
+<br><br><br><br><br><br>
+<h2>Pokémon Health Calculator</h2>
+
+<div>
+    <label for="base-hp">Base HP:</label>
+    <input type="number" id="base-hp" placeholder="Enter Base HP" required>
+</div>
+
+<div>
+    <label for="pokemon-level">Current Level:</label>
+    <input type="number" id="pokemon-level" placeholder="Enter Level" required min="1" step="1">
+</div>
+
+<button onclick="calculateTotalHP()">Calculate Total HP</button>
+
+<div id="hp-result"></div>
+<br><br><br><br><br><br>
+<br><br><br><br><br><br>
+<br><br><br><br><br><br>
+<br><br><br><br><br><br>

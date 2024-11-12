@@ -36,3 +36,49 @@ button {
     margin-top: 20px;
     text-align: center;
 }
+
+.target-type-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adds space between the dropdown and button */
+    margin-bottom: 8px;
+}
+
+.target-type-select {
+    flex: 1; /* Ensures the select input takes available width */
+}
+
+.remove-button {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.remove-button:hover {
+    background-color: #45a049;
+}
+
+
+#hp-result {
+    margin-top: 15px;
+    font-size: 1.2em;
+    color: #333;
+    font-weight: bold;
+}
+
+button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}

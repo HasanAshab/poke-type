@@ -47,16 +47,33 @@ async function loadTypes() {
 
 // Add a new target type dropdown
 function addTargetType() {
-    const targetTypesContainer = document.getElementById('target-types-container');
-    const select = document.createElement('select');
-    select.className = 'target-type';
-    
-    // Populate each target type dropdown with all available types
-    document.querySelectorAll('#attack-type option').forEach(option => {
-        select.add(new Option(option.text, option.value));
-    });
+    const targetTypeContainer = document.createElement('div');
+    targetTypeContainer.className = 'target-type-container';
 
-    targetTypesContainer.appendChild(select);
+    const targetTypeSelect = document.createElement('select');
+    targetTypeSelect.className = 'target-type-select';
+
+    // Populate the new select with options
+    const attackTypeSelect = document.getElementById('attack-type');
+    for (const option of attackTypeSelect.options) {
+        const newOption = document.createElement('option');
+        newOption.value = option.value;
+        newOption.textContent = option.textContent;
+        targetTypeSelect.appendChild(newOption);
+    }
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.textContent = 'Remove';
+    removeButton.onclick = () => targetTypeContainer.remove();
+    removeButton.className = 'remove-button';
+
+    // Append the select and remove button to the container
+    targetTypeContainer.appendChild(targetTypeSelect);
+    targetTypeContainer.appendChild(removeButton);
+
+    // Add the new container to the target types section
+    document.getElementById('target-type-selects').appendChild(targetTypeContainer);
 }
 
 // Calculate damage based on effectiveness
@@ -82,25 +99,61 @@ async function calculateDamage() {
         };
 
         // Calculate total multiplier across all target types
-        const totalMultiplier = targetTypes.reduce((multiplier, targetType) => {
+        let totalMultiplier = targetTypes.reduce((multiplier, targetType) => {
             return multiplier * getMultiplier(targetType);
         }, 1);
+        if (totalMultiplier > 2) {
+            totalMultiplier = 2
+        }
 
         const finalDamage = baseDamage * totalMultiplier;
-
         // Display result
         document.getElementById('result').innerHTML = `
-            <h2>Result</h2>
-            <p>Attack Type: ${attackType}</p>
-            <p>Target Types: ${targetTypes.join(', ')}</p>
-            <p>Base Damage: ${baseDamage}</p>
-            <p>Effectiveness Multiplier: ${totalMultiplier}x</p>
-            <p>Final Damage: ${finalDamage}</p>
+            <h2>Its ${getEffectiveness(totalMultiplier)}</h2>
+            <p>Damage: ${finalDamage}</p>
         `;
     } catch (error) {
         console.error("Error calculating damage", error);
     }
 }
+
+function getEffectiveness(totalMultiplier) {
+    if (totalMultiplier === 0) {
+        return "Immune";
+    } else if (totalMultiplier < 0.5) {
+        return "Ultra Ineffective";
+    } else if (totalMultiplier < 1) {
+        return "Not Very Effective";
+    } else if (totalMultiplier === 1) {
+        return "Effective";
+    } else if (totalMultiplier > 1 && totalMultiplier <= 2) {
+        return "Super Effective";
+    } else if (totalMultiplier > 2) {
+        return "Ultra Effective";
+    }
+}
+
+function getClosestLevel(level) {
+    // Round down to the nearest multiple of 5
+    return Math.floor(level / 5) * 5;
+}
+
+function calculateTotalHP() {
+    const baseHP = parseFloat(document.getElementById('base-hp').value);
+    const level = parseInt(document.getElementById('pokemon-level').value);
+
+    if (isNaN(baseHP) || isNaN(level)) {
+        document.getElementById('hp-result').textContent = "Please enter valid Base HP and Level.";
+        return;
+    }
+
+    const closestLevel = getClosestLevel(level);
+    const levelHealth = (0.10 * baseHP) * closestLevel;
+    const totalHP = baseHP + levelHealth;
+
+    document.getElementById('hp-result').textContent = `Total HP: ${totalHP}`;
+}
+
 
 // Initialize types on page load
 document.addEventListener('DOMContentLoaded', loadTypes);

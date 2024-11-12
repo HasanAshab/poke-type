@@ -82,7 +82,7 @@ async function calculateDamage() {
     const baseDamage = parseFloat(document.getElementById('base-damage').value);
 
     // Get all selected target types
-    const targetTypeElements = document.querySelectorAll('.target-type');
+    const targetTypeElements = document.querySelectorAll('.target-type-select');
     const targetTypes = Array.from(targetTypeElements).map(select => select.value);
 
     try {

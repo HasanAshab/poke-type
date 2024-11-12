@@ -7,6 +7,7 @@ const URLS_TO_CACHE = [
     '/styles.css',
     '/script.js',
     '/manifest.json',
+    '/service-worker.js',
     '/robot-192.png',
     '/robot-512.png',
     'https://pokeapi.co/api/v2/type',

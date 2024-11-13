@@ -1,100 +1,105 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Fetch types from the API to cache them when the app is online
-    fetchTypes();
+    // Load types from IndexedDB when the page is loaded
+    loadTypes();
 });
 
-function fetchTypes() {
-    fetch('https://pokeapi.co/api/v2/type')
-        .then(response => response.json())
-        .then(data => {
-            // Here, we can cache individual types dynamically
-            const types = data.results;
-            types.forEach(type => {
-                fetch(`https://pokeapi.co/api/v2/type/${type.name}`).then(res => {
-                    return res.json();
-                }).then(typeData => {
-                    caches.open('pokemon-damage-calculator-v2').then(cache => {
-                        cache.put(`https://pokeapi.co/api/v2/type/${type.name}`, new Response(JSON.stringify(typeData)));
-                    });
-                });
-            });
-        })
-        .catch(err => {
-            console.error('Failed to fetch types:', err);
-        });
+// IndexedDB setup and utility functions
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('PokemonTypeDB', 1);
+        request.onupgradeneeded = () => {
+            const db = request.result;
+            db.createObjectStore('types', { keyPath: 'name' });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject('Failed to open IndexedDB');
+    });
 }
 
+function storeTypeData(db, typeData) {
+    const transaction = db.transaction('types', 'readwrite');
+    const store = transaction.objectStore('types');
+    store.put(typeData);
+    return transaction.complete;
+}
 
-// script.js
+function getTypeData(db, typeName) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('types', 'readonly');
+        const store = transaction.objectStore('types');
+        const request = store.get(typeName);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(`Failed to retrieve type: ${typeName}`);
+    });
+}
 
-// Load types into the dropdowns
-async function loadTypes() {
+// Fetch and store compressed type data from PokeAPI
+async function fetchAndStoreTypes() {
+    const db = await openDB();
+    
     try {
         const response = await fetch('https://pokeapi.co/api/v2/type');
         const data = await response.json();
-        const typeList = data.results.map(type => type.name);
+        const types = data.results;
 
-        // Populate the attack type dropdown
-        const attackTypeSelect = document.getElementById('attack-type');
-        typeList.forEach(type => {
-            let option = new Option(type.charAt(0).toUpperCase() + type.slice(1), type);
-            attackTypeSelect.add(option);
-        });
+        for (const type of types) {
+            const typeResponse = await fetch(`https://pokeapi.co/api/v2/type/${type.name}`);
+            const typeData = await typeResponse.json();
+
+            // Compress data by only storing `damage_relations`
+            const compressedData = {
+                name: type.name,
+                damage_relations: typeData.damage_relations,
+            };
+
+            await storeTypeData(db, compressedData);
+        }
+        alert("Type data has been fetched and stored in IndexedDB.");
     } catch (error) {
-        console.error("Failed to load types from PokeAPI", error);
+        console.error("Failed to fetch and store types:", error);
     }
 }
 
-// Add a new target type dropdown
-function addTargetType() {
-    const targetTypeContainer = document.createElement('div');
-    targetTypeContainer.className = 'target-type-container';
+// Load types from IndexedDB and populate dropdowns
+async function loadTypes() {
+    const db = await openDB();
+    const transaction = db.transaction('types', 'readonly');
+    const store = transaction.objectStore('types');
+    const typeList = [];
 
-    const targetTypeSelect = document.createElement('select');
-    targetTypeSelect.className = 'target-type-select';
-
-    // Populate the new select with options
-    const attackTypeSelect = document.getElementById('attack-type');
-    for (const option of attackTypeSelect.options) {
-        const newOption = document.createElement('option');
-        newOption.value = option.value;
-        newOption.textContent = option.textContent;
-        targetTypeSelect.appendChild(newOption);
-    }
-
-    const removeButton = document.createElement('button');
-    removeButton.type = 'button';
-    removeButton.textContent = 'Remove';
-    removeButton.onclick = () => targetTypeContainer.remove();
-    removeButton.className = 'remove-button';
-
-    // Append the select and remove button to the container
-    targetTypeContainer.appendChild(targetTypeSelect);
-    targetTypeContainer.appendChild(removeButton);
-
-    // Add the new container to the target types section
-    document.getElementById('target-type-selects').appendChild(targetTypeContainer);
+    store.openCursor().onsuccess = function(event) {
+        const cursor = event.target.result;
+        if (cursor) {
+            typeList.push(cursor.value.name);
+            cursor.continue();
+        } else {
+            // Populate the dropdown once all types are loaded
+            const attackTypeSelect = document.getElementById('attack-type');
+            typeList.forEach(type => {
+                let option = new Option(type.charAt(0).toUpperCase() + type.slice(1), type);
+                attackTypeSelect.add(option);
+            });
+        }
+    };
 }
 
-// Calculate damage based on effectiveness
+// Calculate damage based on effectiveness from IndexedDB
 async function calculateDamage() {
+    const db = await openDB();
     const attackType = document.getElementById('attack-type').value;
     const baseDamage = parseFloat(document.getElementById('base-damage').value);
-
-    // Get all selected target types
     const targetTypeElements = document.querySelectorAll('.target-type-select');
     const targetTypes = Array.from(targetTypeElements).map(select => select.value);
 
     try {
-        // Fetch effectiveness for the selected attack type
-        const response = await fetch(`https://pokeapi.co/api/v2/type/${attackType}`);
-        const data = await response.json();
+        const typeData = await getTypeData(db, attackType);
+        if (!typeData) throw new Error(`Type data not found for ${attackType}`);
 
         // Function to find effectiveness against a target type
         const getMultiplier = (targetType) => {
-            if (data.damage_relations.double_damage_to.some(type => type.name === targetType)) return 2;
-            if (data.damage_relations.half_damage_to.some(type => type.name === targetType)) return 0.5;
-            if (data.damage_relations.no_damage_to.some(type => type.name === targetType)) return 0;
+            if (typeData.damage_relations.double_damage_to.some(type => type.name === targetType)) return 2;
+            if (typeData.damage_relations.half_damage_to.some(type => type.name === targetType)) return 0.5;
+            if (typeData.damage_relations.no_damage_to.some(type => type.name === targetType)) return 0;
             return 1; // Neutral damage if no specific relation exists
         };
 
@@ -102,14 +107,14 @@ async function calculateDamage() {
         let totalMultiplier = targetTypes.reduce((multiplier, targetType) => {
             return multiplier * getMultiplier(targetType);
         }, 1);
+
         if (totalMultiplier > 2) {
-            totalMultiplier = 2
+            totalMultiplier = 2;
         }
 
         const finalDamage = baseDamage * totalMultiplier;
-        // Display result
         document.getElementById('result').innerHTML = `
-            <h2>Its ${getEffectiveness(totalMultiplier)}</h2>
+            <h2>It's ${getEffectiveness(totalMultiplier)}</h2>
             <p>Damage: ${finalDamage}</p>
         `;
     } catch (error) {
@@ -154,6 +159,31 @@ function calculateTotalHP() {
     document.getElementById('hp-result').textContent = `Total HP: ${totalHP}`;
 }
 
+// Add a new target type dropdown
+function addTargetType() {
+    const targetTypeContainer = document.createElement('div');
+    targetTypeContainer.className = 'target-type-container';
 
-// Initialize types on page load
-document.addEventListener('DOMContentLoaded', loadTypes);
+    const targetTypeSelect = document.createElement('select');
+    targetTypeSelect.className = 'target-type-select';
+
+    // Populate the new select with options
+    const attackTypeSelect = document.getElementById('attack-type');
+    for (const option of attackTypeSelect.options) {
+        const newOption = document.createElement('option');
+        newOption.value = option.value;
+        newOption.textContent = option.textContent;
+        targetTypeSelect.appendChild(newOption);
+    }
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.textContent = 'Remove';
+    removeButton.onclick = () => targetTypeContainer.remove();
+    removeButton.className = 'remove-button';
+
+    targetTypeContainer.appendChild(targetTypeSelect);
+    targetTypeContainer.appendChild(removeButton);
+
+    document.getElementById('target-type-selects').appendChild(targetTypeContainer);
+}

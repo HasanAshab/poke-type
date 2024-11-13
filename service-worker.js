@@ -8,8 +8,8 @@ const URLS_TO_CACHE = [
     '/script.js',
     '/manifest.json',
     '/service-worker.js',
-    '/robot-192.png',
-    '/robot-512.png',
+    '/icon-192.png',
+    '/icon-512.png',
     'https://pokeapi.co/api/v2/type',
     'https://pokeapi.co/api/v2/type/normal/',    // normal
     'https://pokeapi.co/api/v2/type/fighting/',  // fighting

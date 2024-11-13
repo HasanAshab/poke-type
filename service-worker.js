@@ -10,30 +10,7 @@ const URLS_TO_CACHE = [
     '/service-worker.js',
     '/icon-192.png',
     '/icon-512.png',
-    'https://pokeapi.co/api/v2/type',
-    'https://pokeapi.co/api/v2/type/normal/',    // normal
-    'https://pokeapi.co/api/v2/type/fighting/',  // fighting
-    'https://pokeapi.co/api/v2/type/flying/',    // flying
-    'https://pokeapi.co/api/v2/type/poison/',    // poison
-    'https://pokeapi.co/api/v2/type/ground/',    // ground
-    'https://pokeapi.co/api/v2/type/rock/',      // rock
-    'https://pokeapi.co/api/v2/type/bug/',       // bug
-    'https://pokeapi.co/api/v2/type/ghost/',     // ghost
-    'https://pokeapi.co/api/v2/type/steel/',     // steel
-    'https://pokeapi.co/api/v2/type/fire/',      // fire
-    'https://pokeapi.co/api/v2/type/water/',     // water
-    'https://pokeapi.co/api/v2/type/grass/',     // grass
-    'https://pokeapi.co/api/v2/type/electric/',  // electric
-    'https://pokeapi.co/api/v2/type/psychic/',   // psychic
-    'https://pokeapi.co/api/v2/type/ice/',       // ice
-    'https://pokeapi.co/api/v2/type/dragon/',    // dragon
-    'https://pokeapi.co/api/v2/type/dark/',      // dark
-    'https://pokeapi.co/api/v2/type/fairy/',     // fairy
-    'https://pokeapi.co/api/v2/type/stellar/',   // stellar
-    'https://pokeapi.co/api/v2/type/unknown/',   // unknown
-    'https://pokeapi.co/api/v2/type/shadow/'     // shadow
-];
-
+]
 // Install Service Worker and Cache Static Assets
 self.addEventListener('install', event => {
     event.waitUntil(

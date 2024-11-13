@@ -152,6 +152,81 @@ async function loadPokemons() {
     };
 }
 
+async function calculateDamage() {
+    const db = await openDB();
+    const attackType = document.getElementById('attack-type').value;
+    const baseDamage = parseFloat(document.getElementById('base-damage').value);
+    const targetTypeElements = document.querySelectorAll('.target-type-select');
+    const targetTypes = Array.from(targetTypeElements).map(select => select.value);
+
+    try {
+        const typeData = await getTypeData(db, attackType);
+        if (!typeData) throw new Error(`Type data not found for ${attackType}`);
+
+        // Function to find effectiveness against a target type
+        const getMultiplier = (targetType) => {
+            if (typeData.damage_relations.double_damage_to.some(type => type.name === targetType)) return 2;
+            if (typeData.damage_relations.half_damage_to.some(type => type.name === targetType)) return 0.5;
+            if (typeData.damage_relations.no_damage_to.some(type => type.name === targetType)) return 0;
+            return 1; // Neutral damage if no specific relation exists
+        };
+
+        // Calculate total multiplier across all target types
+        let totalMultiplier = targetTypes.reduce((multiplier, targetType) => {
+            return multiplier * getMultiplier(targetType);
+        }, 1);
+
+        if (totalMultiplier > 2) {
+            totalMultiplier = 2;
+        }
+
+        const finalDamage = baseDamage * totalMultiplier;
+        document.getElementById('result').innerHTML = `
+            <h2>It's ${getEffectiveness(totalMultiplier)}</h2>
+            <p>Damage: ${finalDamage}</p>
+        `;
+    } catch (error) {
+        console.error("Error calculating damage", error);
+    }
+}
+
+function getEffectiveness(totalMultiplier) {
+    if (totalMultiplier === 0) {
+        return "Immune";
+    } else if (totalMultiplier < 0.5) {
+        return "Ultra Ineffective";
+    } else if (totalMultiplier < 1) {
+        return "Not Very Effective";
+    } else if (totalMultiplier === 1) {
+        return "Effective";
+    } else if (totalMultiplier > 1 && totalMultiplier <= 2) {
+        return "Super Effective";
+    } else if (totalMultiplier > 2) {
+        return "Ultra Effective";
+    }
+}
+
+function getClosestLevel(level) {
+    // Round down to the nearest multiple of 5
+    return Math.floor(level / 5) * 5;
+}
+
+function calculateTotalHP() {
+    const baseHP = parseFloat(document.getElementById('base-hp').value);
+    const level = parseInt(document.getElementById('pokemon-level').value);
+
+    if (isNaN(baseHP) || isNaN(level)) {
+        document.getElementById('hp-result').textContent = "Please enter valid Base HP and Level.";
+        return;
+    }
+
+    const closestLevel = getClosestLevel(level);
+    const levelHealth = (0.10 * baseHP) * closestLevel;
+    const totalHP = baseHP + levelHealth;
+
+    document.getElementById('hp-result').textContent = `Total HP: ${totalHP}`;
+}
+
 
 function addTargetType() {
     const targetTypeContainer = document.createElement('div');

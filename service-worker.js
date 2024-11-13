@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'pokemon-damage-calculator-v2';
+const CACHE_NAME = 'pokemon-damage-calculator-v3';
 const URLS_TO_CACHE = [
     '/',
     '/index.html',

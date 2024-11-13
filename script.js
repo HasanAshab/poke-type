@@ -152,6 +152,34 @@ async function loadPokemons() {
     };
 }
 
+
+function addTargetType() {
+    const targetTypeContainer = document.createElement('div');
+    targetTypeContainer.className = 'target-type-container';
+
+    const targetTypeSelect = document.createElement('select');
+    targetTypeSelect.className = 'target-type-select';
+
+    // Populate the new select with options
+    const attackTypeSelect = document.getElementById('attack-type');
+    for (const option of attackTypeSelect.options) {
+        const newOption = document.createElement('option');
+        newOption.value = option.value;
+        newOption.textContent = option.textContent;
+        targetTypeSelect.appendChild(newOption);
+    }
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.textContent = 'Remove';
+    removeButton.onclick = () => targetTypeContainer.remove();
+    removeButton.className = 'remove-button';
+
+    targetTypeContainer.appendChild(targetTypeSelect);
+    targetTypeContainer.appendChild(removeButton);
+
+    document.getElementById('target-type-selects').appendChild(targetTypeContainer);
+}
+
 // Search and display Pokémon types based on partial name matching
 async function searchPokemon() {
     const db = await openDB();

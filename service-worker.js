@@ -1,6 +1,7 @@
 // service-worker.js
 
 const CACHE_NAME = 'pokemon-damage-calculator-v4';
+const baseUrl = "https://poke-type-75aw.onrender.com"
 const URLS_TO_CACHE = [
     '/',
     '/index.html',
@@ -8,7 +9,8 @@ const URLS_TO_CACHE = [
     '/script.js',
     '/icon-192.png',
     '/icon-512.png',
-]
+].map(path => baseUrl + path)
+
 // Install Service Worker and Cache Static Assets
 self.addEventListener('install', event => {
     event.waitUntil(
